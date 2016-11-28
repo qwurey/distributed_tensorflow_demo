@@ -1,6 +1,7 @@
 #coding=utf-8
 import numpy as np
 import tensorflow as tf
+import time
 
 # Define parameters
 FLAGS = tf.app.flags.FLAGS
@@ -73,12 +74,13 @@ def main(_):
                             save_model_secs=60)      
     with sv.managed_session(server.target) as sess:
       step = 0
-      while step < 1000000:
+      while step < 10000:
         train_x = np.random.randn(1)
         train_y = 2 * train_x + np.random.randn(1) * 0.33 + 10
         _, loss_v, step = sess.run([train_op, loss_value, global_step], feed_dict={input:train_x, label:train_y})
         if step % steps_to_validate == 0:
           w, b = sess.run([weight, biase])
+          print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
           print("step: %d, weight: %f, biase: %f, loss: %f" %(step, w, b, loss_v))
 
     sv.stop()
