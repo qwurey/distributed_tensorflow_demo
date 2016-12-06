@@ -1,5 +1,7 @@
 from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow as tf
+import datetime
+import time
 
 tf.app.flags.DEFINE_string("ps_hosts", "", "Comma-separated list of hostname:port pairs")
 tf.app.flags.DEFINE_string("worker_hosts", "", "Comma-separated list of hostname:port pairs")
@@ -8,6 +10,8 @@ tf.app.flags.DEFINE_integer("task_index", 0, "Index of task within the job")
 
 FLAGS = tf.app.flags.FLAGS
 
+is_chief = (FLAGS.task_index == 0)
+
 # Parameters
 learning_rate = 0.01
 regularization_rate = 0.01
@@ -15,7 +19,7 @@ training_epochs = 20
 batch_size = 100
 display_step = 100
 keep_prob = 0.5
-total_steps = 20000
+total_steps = 10000
 # Network Parameters
 n_input = 784 # Number of feature
 n_hidden_1 = 700 # 1st layer number of features
@@ -175,6 +179,11 @@ def main(_):
                                  global_step=global_step,
                                  save_model_secs=600)
 
+        if is_chief:
+            print("Worker %d: Initializing session..." % FLAGS.task_index)
+        else:
+            print("Worker %d: Waiting for session to be initialized..." % FLAGS.task_index)
+
         # The supervisor takes care of session initialization and restoring from
         # a checkpoint.
         sess = sv.prepare_or_wait_for_session(server.target)
@@ -182,14 +191,20 @@ def main(_):
         # Start queue runners for the input pipelines (if ang).
         sv.start_queue_runners(sess)
 
-        # Loop until the supervisor shuts down (or 2000 steps have completed).
+        # Loop until the supervisor shuts down (or total_steps steps have completed).
+        starttime = datetime.datetime.now()
+
         step = 0
         while not sv.should_stop() and step < total_steps:
             batch_xs, batch_ys = mnist.train.next_batch(batch_size)
             _, loss_v, step = sess.run([train_op, cost, global_step], feed_dict={x: batch_xs, y_: batch_ys})
             if step % display_step == 0:
+                print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
                 print("Step %d in task %d, loss %f" % (step, FLAGS.task_index, loss_v))
         print("done.")
+
+        endtime = datetime.datetime.now()
+        print (endtime - starttime).seconds
 
         if FLAGS.task_index != 0:
             print("accuracy: %f" % sess.run(accuracy, feed_dict={x: mnist.test.images,
