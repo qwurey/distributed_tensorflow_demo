@@ -88,7 +88,7 @@ def main(_):
 
     sv.stop()
     endtime = datetime.datetime.now()
-    file_name = "/notebooks/" + str(FLAGS.job_name) + "_" + str(task_index) +"_time.txt"
+    file_name = "/mnt/" + str(FLAGS.job_name) + "_" + str(task_index) +"_time.txt"
     f1 = open(file_name,'w')
     f1.write(str((endtime - starttime).seconds))
     f1.close()
