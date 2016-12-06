@@ -19,7 +19,8 @@ training_epochs = 20
 batch_size = 100
 display_step = 100
 keep_prob = 0.5
-total_steps = 10000
+total_steps = 100000
+
 # Network Parameters
 n_input = 784 # Number of feature
 n_hidden_1 = 700 # 1st layer number of features
