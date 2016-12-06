@@ -208,11 +208,11 @@ def main(_):
         endtime = datetime.datetime.now()
         print (endtime - starttime).seconds
         
-        file_name = str(FLAGS.job_name) + "_" + str(task_index) + "_time.txt"
-        f1 = open(file_name,'w')
-        f1.write(str((endtime - starttime).seconds))
-        f1.write("\n")
-        f1.close()
+        #file_name = str(FLAGS.job_name) + "_" + str(task_index) + "_time.txt"
+        #f1 = open(file_name,'w')
+        #f1.write(str((endtime - starttime).seconds))
+        #f1.write("\n")
+        #f1.close()
         
         if FLAGS.task_index != 0:
             print("accuracy: %f" % sess.run(accuracy, feed_dict={x: mnist.test.images,
