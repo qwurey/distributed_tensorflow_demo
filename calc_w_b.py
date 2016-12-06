@@ -77,7 +77,7 @@ def main(_):
                             save_model_secs=60)      
     with sv.managed_session(server.target) as sess:
       step = 0
-      while step < 200000:
+      while step < 100000:
         train_x = np.random.randn(1)
         train_y = 2 * train_x + np.random.randn(1) * 0.33 + 10
         _, loss_v, step = sess.run([train_op, loss_value, global_step], feed_dict={input:train_x, label:train_y})
@@ -88,7 +88,7 @@ def main(_):
 
     sv.stop()
     endtime = datetime.datetime.now()
-    file_name = str(FLAGS.job_name) + "_" + str(task_index) +"_time.txt"
+    file_name = "/data/" + str(FLAGS.job_name) + "_" + str(task_index) +"_time.txt"
     f1 = open(file_name,'w')
     f1.write(str((endtime - starttime).seconds))
     f1.close()
