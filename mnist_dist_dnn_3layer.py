@@ -116,7 +116,7 @@ def main(_):
         # Create a "Supervisor", which oversees the training process.
         sv = tf.train.Supervisor(is_chief=(FLAGS.task_index == 0),
                                 # logdir="/Users/urey/PycharmProjects/tensorflow_demo/notes/tensorflow/checkpoint/",
-                                logdir="./checkpoint/" 
+                                logdir="./checkpoint/", 
 				init_op=init_op,
                                  summary_op=summary_op,
                                  saver=saver,
