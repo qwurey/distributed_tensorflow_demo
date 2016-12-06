@@ -2,6 +2,7 @@
 import numpy as np
 import tensorflow as tf
 import time
+import datetime
 
 # Define parameters
 FLAGS = tf.app.flags.FLAGS
@@ -64,6 +65,8 @@ def main(_):
       tf.scalar_summary('cost', loss_value)
       summary_op = tf.merge_all_summaries()
  
+    starttime = datetime.datetime.now()
+
     sv = tf.train.Supervisor(is_chief=(FLAGS.task_index == 0),
                             # logdir="/Users/urey/PycharmProjects/tensorflow_demo/distributed_demo/checkpoint/",
                             logdir="./checkpoint/",
@@ -84,6 +87,11 @@ def main(_):
           print("step: %d, weight: %f, biase: %f, loss: %f" %(step, w, b, loss_v))
 
     sv.stop()
+    endtime = datetime.datetime.now()
+    file_name = str(FLAGS.job_name) + "_" + str(task_index) +"_time.txt"
+    f1 = open(file_name,'w')
+    f1.write(str((endtime - starttime).seconds))
+    f1.close()
 
 def loss(label, pred):
   return tf.square(label - pred)
