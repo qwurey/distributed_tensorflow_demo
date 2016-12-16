@@ -87,7 +87,10 @@ def main(_):
                 cluster=cluster)):
 
             # Get data ...
-            mnist = input_data.read_data_sets("data", one_hot=True)
+            try:
+                mnist = input_data.read_data_sets("data", one_hot=True)
+            except:
+                pass
 
             # Define variables
             x = tf.placeholder(tf.float32, [None, n_input])

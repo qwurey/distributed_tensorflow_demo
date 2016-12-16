@@ -78,8 +78,8 @@ def regularization_value(weights, biases):
             + regularization_rate * tf.nn.l2_loss(biases['b2']) \
             + regularization_rate * tf.nn.l2_loss(biases['b3']) \
             + regularization_rate * tf.nn.l2_loss(biases['b4']) \
-            + regularization_rate * tf.nn.l2_loss(weights['b5']) \
-            + regularization_rate * tf.nn.l2_loss(weights['b6']) \
+            + regularization_rate * tf.nn.l2_loss(biases['b5']) \
+            + regularization_rate * tf.nn.l2_loss(biases['b6']) \
             + regularization_rate * tf.nn.l2_loss(biases['out'])
     return value
 
@@ -105,8 +105,10 @@ def main(_):
                 cluster=cluster)):
 
             # Get data ...
-            mnist = input_data.read_data_sets("data", one_hot=True)
-
+            try:
+                mnist = input_data.read_data_sets("data", one_hot=True)
+            except:
+                pass
             # Define variables
             x = tf.placeholder(tf.float32, [None, n_input])
             y_ = tf.placeholder(tf.float32, [None, 10])
