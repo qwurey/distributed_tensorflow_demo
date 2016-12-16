@@ -69,19 +69,11 @@ def regularization_value(weights, biases):
             + regularization_rate * tf.nn.l2_loss(weights['h2']) \
             + regularization_rate * tf.nn.l2_loss(weights['h3']) \
             + regularization_rate * tf.nn.l2_loss(weights['h4']) \
-            #+ regularization_rate * tf.nn.l2_loss(weights['h5']) \
-            #+ regularization_rate * tf.nn.l2_loss(weights['h6']) \
-            #+ regularization_rate * tf.nn.l2_loss(weights['h7']) \
-            #+ regularization_rate * tf.nn.l2_loss(weights['h8']) \
             + regularization_rate * tf.nn.l2_loss(weights['out']) \
             + regularization_rate * tf.nn.l2_loss(biases['b1']) \
             + regularization_rate * tf.nn.l2_loss(biases['b2']) \
             + regularization_rate * tf.nn.l2_loss(biases['b3']) \
             + regularization_rate * tf.nn.l2_loss(biases['b4']) \
-            #+ regularization_rate * tf.nn.l2_loss(biases['b5']) \
-            #+ regularization_rate * tf.nn.l2_loss(biases['b6']) \
-            #+ regularization_rate * tf.nn.l2_loss(biases['b7']) \
-            #+ regularization_rate * tf.nn.l2_loss(biases['b8']) \
             + regularization_rate * tf.nn.l2_loss(biases['out'])
     return value
 
@@ -124,15 +116,7 @@ def main(_):
                                                    dtype=tf.float32, name='h3_weights')),
                 'h4': tf.Variable(tf.random_normal([n_hidden_3, n_hidden_4], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_3*1.0),
                                                    dtype=tf.float32, name='h4_weights')),
-                #'h5': tf.Variable(tf.random_normal([n_hidden_4, n_hidden_5], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_4*1.0),
-                #                                   dtype=tf.float32, name='h5_weights')),
-                #'h6': tf.Variable(tf.random_normal([n_hidden_5, n_hidden_6], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_5*1.0),
-                #                                   dtype=tf.float32, name='h6_weights')),
-                #'h7': tf.Variable(tf.random_normal([n_hidden_6, n_hidden_7], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_6*1.0),
-                #                                   dtype=tf.float32, name='h7_weights')),
-                #'h8': tf.Variable(tf.random_normal([n_hidden_7, n_hidden_8], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_7*1.0),
-                #                                   dtype=tf.float32, name='h8_weights')),
-                'out': tf.Variable(tf.random_normal([n_hidden_4, n_classes], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_8*1.0),
+                'out': tf.Variable(tf.random_normal([n_hidden_4, n_classes], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_4*1.0),
                                                     dtype=tf.float32, name='out_weights'))
             }
             biases = {
@@ -143,10 +127,6 @@ def main(_):
                 'b2': tf.Variable(tf.zeros([n_hidden_2])),
                 'b3': tf.Variable(tf.zeros([n_hidden_3])),
                 'b4': tf.Variable(tf.zeros([n_hidden_4])),
-                #'b5': tf.Variable(tf.zeros([n_hidden_5])),
-                #'b6': tf.Variable(tf.zeros([n_hidden_6])),
-                #'b7': tf.Variable(tf.zeros([n_hidden_7])),
-                #'b8': tf.Variable(tf.zeros([n_hidden_8])),
                 'out': tf.Variable(tf.zeros([n_classes]))
             }
             pred = multilayer_perceptron(x, weights, biases)
