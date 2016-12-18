@@ -13,38 +13,65 @@ FLAGS = tf.app.flags.FLAGS
 is_chief = (FLAGS.task_index == 0)
 
 # Parameters
-learning_rate = 0.0001
+learning_rate = 0.001
 regularization_rate = 0.01
 training_epochs = 20
-batch_size = 100
+batch_size = 128
 display_step = 100
 total_steps = 100000
 
 # Network Parameters
-n_input = 784 # Number of feature
-n_classes = 10 # Number of classes to predict
+n_inputs = 28   # MNIST data input (img shape: 28*28)
+n_steps = 28    # time steps
+n_hidden_units = 128   # neurons in hidden layer
+n_classes = 10      # MNIST classes (0-9 digits)
+
+# set random seed for comparing the two result calculations
+tf.set_random_seed(1)
 
 
+def rnn(X, weights, biases):
+    # hidden layer for input to cell
+    ########################################
 
-def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev=0.1)
-    return tf.Variable(initial)
+    # transpose the inputs shape from
+    # X ==> (128 batch * 28 steps, 28 inputs)
+    X = tf.reshape(X, [-1, n_inputs])
 
+    # into hidden
+    # X_in = (128 batch * 28 steps, 128 hidden)
+    X_in = tf.matmul(X, weights['in']) + biases['in']
+    # X_in ==> (128 batch, 28 steps, 128 hidden)
+    X_in = tf.reshape(X_in, [-1, n_steps, n_hidden_units])
 
-def bias_variable(shape):
-    initial = tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
+    # cell
+    ##########################################
 
+    # basic LSTM Cell.
+    lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(n_hidden_units, forget_bias=1.0, state_is_tuple=True)
+    # lstm cell is divided into two parts (c_state, h_state)
+    init_state = lstm_cell.zero_state(batch_size, dtype=tf.float32)
 
-def conv2d(x, W):
-    # stride [1, x_movement, y_movement, 1]
-    # Must have strides[0] = strides[3] = 1
-    return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
+    # You have 2 options for following step.
+    # 1: tf.nn.rnn(cell, inputs);
+    # 2: tf.nn.dynamic_rnn(cell, inputs).
+    # If use option 1, you have to modified the shape of X_in, go and check out this:
+    # https://github.com/aymericdamien/TensorFlow-Examples/blob/master/examples/3_NeuralNetworks/recurrent_network.py
+    # In here, we go for option 2.
+    # dynamic_rnn receive Tensor (batch, steps, inputs) or (steps, batch, inputs) as X_in.
+    # Make sure the time_major is changed accordingly.
+    outputs, final_state = tf.nn.dynamic_rnn(lstm_cell, X_in, initial_state=init_state, time_major=False)
 
+    # hidden layer for output as the final results
+    #############################################
+    # results = tf.matmul(final_state[1], weights['out']) + biases['out']
 
-def max_pool_2x2(x):
-    # stride [1, x_movement, y_movement, 1]
-    return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    # # or
+    # unpack to list [(batch, outputs)..] * steps
+    outputs = tf.unpack(tf.transpose(outputs, [1, 0, 2]))    # states is the last outputs
+    results = tf.matmul(outputs[-1], weights['out']) + biases['out']
+
+    return results
 
 
 def main(_):
@@ -71,57 +98,35 @@ def main(_):
                 worker_device="/job:worker/task:%d" % FLAGS.task_index,
                 cluster=cluster)):
 
-            # Define variables
-            x = tf.placeholder(tf.float32, [None, n_input])
-            y_ = tf.placeholder(tf.float32, [None, 10])
+            # tf Graph input
+            x = tf.placeholder(tf.float32, [None, n_steps, n_inputs])
+            y = tf.placeholder(tf.float32, [None, n_classes])
 
-            keep_prob = tf.placeholder(tf.float32)
-            x_image = tf.reshape(x, [-1, 28, 28, 1])
+            # Define weights
+            weights = {
+                # (28, 128)
+                'in': tf.Variable(tf.random_normal([n_inputs, n_hidden_units])),
+                # (128, 10)
+                'out': tf.Variable(tf.random_normal([n_hidden_units, n_classes]))
+            }
+            biases = {
+                # (128, )
+                'in': tf.Variable(tf.constant(0.1, shape=[n_hidden_units, ])),
+                # (10, )
+                'out': tf.Variable(tf.constant(0.1, shape=[n_classes, ]))
+            }
 
-            # Create the model...
-            # Store layers weight & bias
-
-            # params
-            W_conv1 = weight_variable([5, 5, 1, 32]) # patch 5x5, in size 1, out size 32
-            b_conv1 = bias_variable([32])
-            ## conv1 layer ##
-            h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1) # output size 28x28x32
-            h_pool1 = max_pool_2x2(h_conv1) # output size 14x14x32
-
-            # params
-            W_conv2 = weight_variable([5, 5, 32, 64]) # patch 5x5, in size 32, out size 64
-            b_conv2 = bias_variable([64])
-            ## conv2 layer ##
-            h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2) # output size 14x14x64
-            h_pool2 = max_pool_2x2(h_conv2) # output size 7x7x64
-
-            # params
-            W_fc1 = weight_variable([7*7*64, 1024])
-            b_fc1 = bias_variable([1024])
-            # [n_samples, 7, 7, 64] ->> [n_samples, 7*7*64]
-            ## fc1 layer ##
-            h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])
-            h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
-            h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
-
-            # params
-            W_fc2 = weight_variable([1024, 10])
-            b_fc2 = bias_variable([10])
-
-            ## fc2 layer ##
-            h_fc2 = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
-
-            # Define operations
-            pred = tf.nn.softmax(h_fc2)
-
-            # the error between prediction and real data
-            cost = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(pred), reduction_indices=[1]))       # loss
             global_step = tf.Variable(0)
 
+            # Define operations
+            pred = rnn(x, weights, biases)
+
+            # the error between prediction and real data
+            cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, y))
             train_op = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step=global_step)
 
             # Test trained model
-            correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y_, 1))
+            correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
   
             saver = tf.train.Saver()
@@ -156,7 +161,9 @@ def main(_):
         step = 0
         while not sv.should_stop() and step < total_steps:
             batch_xs, batch_ys = mnist.train.next_batch(batch_size)
-            _, loss_v, step = sess.run([train_op, cost, global_step], feed_dict={x: batch_xs, y_: batch_ys, keep_prob: 0.5})
+            batch_xs = batch_xs.reshape([batch_size, n_steps, n_inputs])
+
+            _, loss_v, step = sess.run([train_op, cost, global_step], feed_dict={x: batch_xs, y: batch_ys})
             if step % display_step == 0:
                 print time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
                 print("Step %d in task %d, loss %f" % (step, FLAGS.task_index, loss_v))
@@ -173,7 +180,7 @@ def main(_):
         
         if FLAGS.task_index != 0:
             print("accuracy: %f" % sess.run(accuracy, feed_dict={x: mnist.test.images,
-                                                             y_: mnist.test.labels}))
+                                                             y: mnist.test.labels}))
 if __name__ == "__main__":
     tf.app.run()
 
