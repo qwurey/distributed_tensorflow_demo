@@ -96,8 +96,8 @@ def main(_):
             h_pool2 = max_pool_2x2(h_conv2) # output size 7x7x64
 
             # params
-            W_fc1 = weight_variable([7*7*64, 1024])
-            b_fc1 = bias_variable([1024])
+            W_fc1 = weight_variable([7*7*64, 80])
+            b_fc1 = bias_variable([80])
             # [n_samples, 7, 7, 64] ->> [n_samples, 7*7*64]
             ## fc1 layer ##
             h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])
@@ -105,7 +105,7 @@ def main(_):
             h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
             # params
-            W_fc2 = weight_variable([1024, 10])
+            W_fc2 = weight_variable([80, 10])
             b_fc2 = bias_variable([10])
 
             ## fc2 layer ##

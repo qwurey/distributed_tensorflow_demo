@@ -125,6 +125,9 @@ def main(_):
             saver = tf.train.Saver()
             summary_op = tf.merge_all_summaries()
             init_op = tf.initialize_all_variables()
+            import sys
+            print len(tf.all_variables())
+            print "size=", sys.getsizeof(tf.all_variables())
 
         # Create a "Supervisor", which oversees the training process.
         sv = tf.train.Supervisor(is_chief=(FLAGS.task_index == 0),
