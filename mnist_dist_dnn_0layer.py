@@ -94,7 +94,7 @@ def main(_):
 
             # Define variables
             x = tf.placeholder(tf.float32, [None, n_input])
-            y_ = tf.placeholder(tf.float32, [None, 10])
+            y_ = tf.placeholder(tf.float32, [None, n_classes])
 
             # Create the model...
             # Store layers weight & bias

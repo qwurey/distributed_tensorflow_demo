@@ -23,9 +23,7 @@ total_steps = 100000
 
 # Network Parameters
 n_input = 784 # Number of feature
-n_hidden_1 = 1600 # 1st layer number of features
-n_hidden_2 = 800 # 2nd layer number of features
-n_hidden_3 = 600 # 3nd layer number of features
+n_hidden_1 = 40 # 1st layer number of features
 n_classes = 10 # Number of classes to predict
 
 
@@ -35,11 +33,11 @@ def multilayer_perceptron(x, weights, biases):
     layer_1 = tf.add(tf.matmul(x, weights['h1']), biases['b1'])
     layer_1 = tf.nn.relu(layer_1)
     # Hidden layer with RELU activation
-    layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
-    layer_2 = tf.nn.relu(layer_2)
+    # layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
+    # layer_2 = tf.nn.relu(layer_2)
     # Hidden layer with RELU activation
-    layer_3 = tf.add(tf.matmul(layer_2, weights['h3']), biases['b3'])
-    layer_3 = tf.nn.relu(layer_3)
+    # layer_3 = tf.add(tf.matmul(layer_2, weights['h3']), biases['b3'])
+    # layer_3 = tf.nn.relu(layer_3)
     # Hidden layer with RELU activation
     # layer_4 = tf.add(tf.matmul(layer_3, weights['h4']), biases['b4'])
     # layer_4 = tf.nn.relu(layer_4)
@@ -59,18 +57,14 @@ def multilayer_perceptron(x, weights, biases):
     # layer_3_drop = tf.nn.dropout(layer_2, keep_prob)
     # Output layer with linear activation
     # out_layer = tf.add(tf.matmul(layer_3_drop, weights['out']), biases['out'])
-    out_layer = tf.add(tf.matmul(layer_3, weights['out']), biases['out'])
+    out_layer = tf.add(tf.matmul(layer_1, weights['out']), biases['out'])
     out_layer = tf.nn.sigmoid(out_layer)
     return out_layer
 
 def regularization_value(weights, biases):
     value = regularization_rate * tf.nn.l2_loss(weights['h1']) \
-            + regularization_rate * tf.nn.l2_loss(weights['h2']) \
-            + regularization_rate * tf.nn.l2_loss(weights['h3']) \
             + regularization_rate * tf.nn.l2_loss(weights['out']) \
             + regularization_rate * tf.nn.l2_loss(biases['b1']) \
-            + regularization_rate * tf.nn.l2_loss(biases['b2']) \
-            + regularization_rate * tf.nn.l2_loss(biases['b3']) \
             + regularization_rate * tf.nn.l2_loss(biases['out'])
     return value
 
@@ -96,7 +90,10 @@ def main(_):
                 cluster=cluster)):
 
             # Get data ...
-            mnist = input_data.read_data_sets("data", one_hot=True)
+            try:
+                mnist = input_data.read_data_sets("data", one_hot=True)
+            except:
+                pass
 
             # Define variables
             x = tf.placeholder(tf.float32, [None, n_input])
@@ -107,11 +104,7 @@ def main(_):
             weights = {
                 'h1': tf.Variable(tf.random_normal([n_input, n_hidden_1], mean=0.0, stddev=1.0/tf.sqrt(n_input*1.0),
                                                    dtype=tf.float32, name='h1_weights')),
-                'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_1*1.0),
-                                                   dtype=tf.float32, name='h2_weights')),
-                'h3': tf.Variable(tf.random_normal([n_hidden_2, n_hidden_3], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_2*1.0),
-                                                   dtype=tf.float32, name='h3_weights')),
-                'out': tf.Variable(tf.random_normal([n_hidden_3, n_classes], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_3*1.0),
+                'out': tf.Variable(tf.random_normal([n_hidden_1, n_classes], mean=0.0, stddev=1.0/tf.sqrt(n_hidden_1*1.0),
                                                     dtype=tf.float32, name='out_weights'))
             }
             biases = {
@@ -119,8 +112,6 @@ def main(_):
                 # 'b2': tf.Variable(tf.random_normal([n_hidden_2])),
                 # 'out': tf.Variable(tf.random_normal([n_classes]))
                 'b1': tf.Variable(tf.zeros([n_hidden_1])),
-                'b2': tf.Variable(tf.zeros([n_hidden_2])),
-                'b3': tf.Variable(tf.zeros([n_hidden_3])),
                 'out': tf.Variable(tf.zeros([n_classes]))
             }
             pred = multilayer_perceptron(x, weights, biases)

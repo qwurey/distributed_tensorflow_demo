@@ -23,8 +23,8 @@ total_steps = 100000
 
 # Network Parameters
 n_input = 784 # Number of feature
-n_hidden_1 = 300 # 1st layer number of features
-n_hidden_2 = 100 # 2nd layer number of features
+n_hidden_1 = 370 # 1st layer number of features
+n_hidden_2 = 50 # 2nd layer number of features
 n_classes = 10 # Number of classes to predict
 
 
